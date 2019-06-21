@@ -1,7 +1,7 @@
 #gratingGenerator
 #This program creates diffraction gratings that will be projected onto the DMD.
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#June 14th, 2019
+#June 20th, 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,13 +11,15 @@ from PIL import Image
 #******************USER INPUTS***************************
 xDim = 912  #Length of DMD
 yDim = 1140 #Width of DMD
-dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\PNG\ ' #Directory to save png image file
-dirBMP = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\BMP\ ' #Directory to save converted bmp image file
-dirBMP1bit = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\BMP_8bit\ '
+dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\PNG\\' #Directory to save png image file
+dirBMP = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\BMP\\' #Directory to save converted bmp image file
+dirBMP8bit = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\BMP_8bit\\'
+dirBMP1bit = 'C:\Users\Franky\Desktop\UofT Summer 2019\Gratings\CalibrationGratings\BMP_1bit\\'
 filename = 'CG' #Filename for the grating
 ext1 = '.png' #image extension 1
 ext2 = '.bmp' #image extension 2
-ext3 = '_8bit.bmp'
+ext3 = '_8bit.bmp' #image extension 2
+ext4 = '_1bit.bmp' #image extension 2
 
 period = 2 #period of grating in pixels
 angle = 0  #grating angle in radians
@@ -41,21 +43,37 @@ for xPos in np.arange(r,xDim+r,2*r):
         filenameNumber = '_X_'+str(xPos)+'_Y_'+str(yPos)
         g1 = grating(xMesh, yMesh, period, angle)
         g2 = grating(xMesh, yMesh, period, angle)
-        for loopx in range(0,xDim-1):
-            for loopy in range(0,yDim-1):
+        for loopx in range(0,xDim):
+            for loopy in range(0,yDim):
                 if (loopx - xPos)**2 +(loopy-yPos)**2 > r**2:
                     g1[loopy, loopx] = 0
                 if (loopx - ((xDim-2*r)/2))**2 + (loopy-((yDim-2*r)/2))**2 > r**2:
                     g2[loopy,loopx] = 0
+        g = g1+g2
+        directImage = Image.new('1', (xDim,yDim))
+        pixelImage = directImage.load()
+        for i in range(directImage.size[0]):
+            for j in range(directImage.size[1]):
+                pixelImage[i,j] = (g[j][i],)
+        directImage.save(dirBMP1bit+filename+filenameNumber+ext4)
+
+        print 'X = ', xPos, 'Y = ', yPos, ' completed.'
+
+
+#************************OLD ATTEMPTS**********************************
         #plt.imshow(g, cmap='gray')
         #plt.show()
-        g = g1+g2
-        img.imsave(dir+filename+filenameNumber+ext1, g, format = 'png', cmap='gray')
 
-        pngImage = Image.open(dir+filename+filenameNumber+ext1)
-        pngImage.save(dirBMP+filename+filenameNumber+ext2)
+        #img.imsave(dir+filename+filenameNumber+ext1, g, format = 'png', cmap='gray')
+        # directImage = Image.fromarray(g,'L')
+        # directImage.show()
 
-        oldBmp = Image.open(dirBMP+filename+filenameNumber+ext2)
-        newBmp = oldBmp.convert('L')
-        newBmp.save(dirBMP1bit+filename+filenameNumber+ext3)
-        print 'X = ', xPos, 'Y = ', yPos, ' completed.'
+        #pngImage = Image.open(dir+filename+filenameNumber+ext1)
+        #pngImage.save(dirBMP+filename+filenameNumber+ext2)
+
+        #oldBmp = Image.open(dirBMP+filename+filenameNumber+ext2)
+        #newBmp = oldBmp.convert('L')
+        #newBmp.save(dirBMP8bit+filename+filenameNumber+ext3)
+        #newerBmp = Image.open(dirBMP8bit+filename+filenameNumber+ext3)
+        #newestBmp = newerBmp.convert('1')
+        #newestBmp.save(dirBMP1bit+filename+filenameNumber+ext4)
