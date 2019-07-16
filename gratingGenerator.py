@@ -74,7 +74,7 @@ for xPos in np.arange(r1,xDim+r1-1,2*r1):
 #         #     pixelImage[i,j] = (1,)
 #         # else:
 #         #     pixelImage[i, j] = (0,)
-directImage.save(dirBMP1bit+filename+ext4)
+# directImage.save(dirBMP1bit+filename+ext4)
 #************************OLD ATTEMPTS**********************************
         #plt.imshow(g, cmap='gray')
         #plt.show()

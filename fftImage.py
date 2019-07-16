@@ -8,27 +8,27 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 
-dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
-filename = 'triforce_RS'
-filename2 = 'triforce_FT'
-ext1 = '.jpg'
+dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\ImagePlane\\'
+filename = 'Gaussian2_Cropped'
+filename2 = 'Gaussian2_Cropped_FT'
+ext1 = '.bmp'
 ext2 = '.bmp'
 ext3 = '.png'
 xDim = 912  #Length of DMD
 yDim = 1140 #Width of DMD
 
 initialImg = Image.open(dir+filename+ext1)
-initialImg.save(dir+filename+ext2)
-bmpImage = Image.open(dir+filename+ext2)
-bmpImg = bmpImage.convert('L')
-bmpImg.save(dir+filename+ext2)
-plt.imshow(bmpImg)
+# initialImg.save(dir+filename+ext2)
+# bmpImage = Image.open(dir+filename+ext2)
+# bmpImg = bmpImage.convert('L')
+# bmpImg.save(dir+filename+ext2)
+plt.imshow(initialImg)
 plt.show()
 
-ft = np.fft.fft2(bmpImg)
+ft = np.fft.fft2(initialImg)
 ftShift = np.fft.fftshift(ft)
-magnitude = 20*np.log(np.abs(ftShift))
-phase = np.arctan(np.imag(ftShift)/np.real(ftShift))
+magnitude = 200*np.log(np.abs(ft))
+phase = np.arctan(np.imag(ft)/np.real(ft))
 
 img.imsave(dir+filename2+ext3, magnitude,  format = 'png', cmap='gray')
 ftpng = Image.open(dir+filename2+ext3)
