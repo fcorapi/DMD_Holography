@@ -3,7 +3,7 @@
 #for the DMD interference patterns in order to obtain a calibration phase map.
 #Modified the 2D Gaussian Fit code from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#July 16th, 2019
+#July 17th, 2019
 
 import numpy as np
 from PIL import Image
@@ -67,7 +67,24 @@ def guessParams(data):
     # print A,B,2*np.pi/x_0, 2*np.pi/y_0
     phi = 0
 
-    return A, B, x_0, -y_0, phi
+    ft = np.fft.fft2(data)
+    ftShift = np.fft.fftshift(ft)
+    magnitude = 1000 * np.log(np.abs(ftShift))
+    plt.imshow(magnitude)
+    plt.show()
+    height = np.shape(magnitude)[0]
+    width = np.shape(magnitude)[1]
+    # plt.imshow(magnitude[0:height/2-3,0:width/2-3])
+    # plt.show()
+    # plt.imshow(magnitude[0:height/2-3,width/2+3:width-1])
+    # plt.show()
+    leftSum = magnitude[0:height/2-3,0:width/2-5].sum()
+    rightSum = magnitude[0:height/2-3,width/2+3:width-1].sum()
+    print leftSum, rightSum
+    if leftSum >= rightSum:
+        return A, B, x_0, y_0, phi
+    else:
+        return A, B, x_0, -y_0, phi
 
 #Using the initial guess parameters from guessParams, the optimal parameters are determined using the following function
 #A least Squares method is used.
@@ -81,25 +98,24 @@ def fitSine2D(data):
     return p.x
 
 #Image Directories
-dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages\\'
-cropDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages\Cropped\\'
-filename = 'CI_X6Y3'
-filenamePrefix = 'CI_'
+dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages2 (July 19)\\'
+cropDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages2 (July 19)\Cropped\\'
+filename = 'CI2_X6Y6'
+filenamePrefix = 'CI2_'
 ext1 = '.bmp'
 #Select the cropping region
-cropCoords = (600,680,690,840)
+cropCoords = (470,370,745,525)
 
 image = Image.open(dir+filename+ext1)
+data = np.array(image)[:,:,0]
+plt.imshow(data)
+plt.show()
+
 croppedImage = image.crop(cropCoords)
 croppedImage.show()
 croppedData = np.array(croppedImage)[:,:,0]
-
-# croppedImage.show()
 plt.imshow(croppedData)
-# plt.show()
-# data = np.array(image)[:,:,0]
-# plt.imshow(data)
-# plt.show()
+
 
 params = fitSine2D(croppedData)
 print params
