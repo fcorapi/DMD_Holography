@@ -11,6 +11,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 from scipy import optimize
+import csv
 
 
 #****************************FUNCTIONS*****************************************************************8
@@ -32,6 +33,8 @@ def local_min(list):
 
 #This function is used to make an accurate initial guess for the fitting paramters for the 2D sine function
 def guessParams(data,xPos, yPos):
+    xPos = float(xPos)
+    yPos = float(yPos)
     amplitude = data.max()
 
     A = np.sqrt(amplitude)/2
@@ -46,8 +49,8 @@ def guessParams(data,xPos, yPos):
     f3 = 30.0 #cm
 
     #Position of the Center patch (X=1 Y=1 is top left corner of DMD)
-    xCen = 8
-    yCen = 5
+    xCen = 8.0
+    yCen = 5.0
 
     deltaX = xCen - xPos
     if deltaX == 0:
@@ -75,7 +78,7 @@ def guessParams(data,xPos, yPos):
         theta = np.arctan(deltaX/deltaY)
 
     Xi = np.arctan((f2/f1)*np.sqrt(deltaX**2 + deltaY**2)*dPatch/f3)
-    print deltaX, deltaY, theta,Xi
+    print deltaX, deltaY, theta,Xi, xPos, yPos
     periodGuessX = (wavelength/cameraPixelSize)/(np.sin(Xi)*np.cos(theta))
     periodGuessY = (wavelength/cameraPixelSize)/(np.sin(Xi)*np.sin(theta))
 
@@ -105,6 +108,7 @@ dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
 cropDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\Cropped\\'
 fitDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\Fitted\\'
 filename = 'CI3_X4Y7'
+csvFilename = 'CI3_Params.csv'
 filenamePrefix = 'CI3_'
 ext1 = '.bmp'
 ext2 = '.png'
@@ -112,36 +116,104 @@ ext2 = '.png'
 cropCoords = (590,420,770,580)
 xMax = 16
 yMax = 10
+xDim = 912 #Length of DMD image
+yDim = 1140#Width of DMD image
+xDMDDim = 1290
+yDMDDim = 806
+r = 1140/(2*np.sqrt(2)*10) #radius of calibration patch
+r1 = r/np.sqrt(2)
+r2 = np.sqrt(2)*r
 
-for xLoop in range(1,xMax+1):
-    for yLoop in range(1,yMax+1):
-        if xLoop == 8 and yLoop == 5:
-            continue
-        image = Image.open(dir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + ext1)
-        # data = np.array(image)[:, :, 0]
-        # plt.imshow(data)
-        # plt.show()
+fittingCheck = 0
+mapCheck = 1
 
-        croppedImage = image.crop(cropCoords)
-        croppedImage.save(cropDir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + '_Cropped'+ ext1)
-        croppedData = np.array(croppedImage)[:, :, 0]
+if fittingCheck == 1:
+    for xLoop in range(1,xMax+1):
+        for yLoop in range(1,yMax+1):
+            if xLoop == 8 and yLoop == 5:
+                continue
+            image = Image.open(dir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + ext1)
+            # data = np.array(image)[:, :, 0]
+            # plt.imshow(data)
+            # plt.show()
 
-        params = fitSine2D(croppedData, xLoop, yLoop)
-        # print params
-        # print 2 * np.pi / params[2], 2 * np.pi / params[3]
-        fit = sine2D(*params)
-        plt.figure()
-        plt.imshow(croppedData)
-        plt.contour(fit(*np.indices(croppedData.shape)), cmap=plt.cm.copper)
-        plt.colorbar()
-        plt.savefig(fitDir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + '_Fit' + ext2)
+            croppedImage = image.crop(cropCoords)
+            croppedImage.save(cropDir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + '_Cropped'+ ext1)
+            croppedData = np.array(croppedImage)[:, :, 0]
 
+            params = fitSine2D(croppedData, xLoop, yLoop)
+            print "Params:", params
+            # print params
+            # print 2 * np.pi / params[2], 2 * np.pi / params[3]
+            fit = sine2D(*params)
+            plt.figure()
+            plt.imshow(croppedData, cmap = 'viridis')
+            plt.colorbar()
+            plt.contour(fit(*np.indices(croppedData.shape)), cmap=plt.cm.get_cmap('copper'), linewidths = 2)
+            plt.savefig(fitDir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + '_Fit' + ext2)
+            plt.close()
+            headers = ['A', 'B', 'x_0', 'y_0', 'phi']
+            if xLoop == 1 and yLoop == 1:
+                # with open(dir+csvFilename, "wb") as output:
+                #     writer = csv.writer(output, lineterminator = '\n')
+                #     writer.writerow(headers)
+                with open(dir + csvFilename, "wb") as output:
+                    writer = csv.writer(output, lineterminator='\n')
+                    writer.writerow(params)
+            else:
+                with open(dir+csvFilename, "ab") as output:
+                    writer = csv.writer(output, lineterminator = '\n')
+                    writer.writerow(params)
+if mapCheck == 1:
+    AList = []
+    BList = []
+    phiList = []
+    with open(dir+csvFilename, 'r') as csvFile:
+        reader = csv.reader(csvFile)
+        for row in reader:
+            AList.append(float(row[0]))
+            BList.append(float(row[1]))
+            phiList.append(float(row[4]))
 
+    xValues = np.arange(r1,xDim+r1-1,2*r1)
+    yValues = np.arange(r2, yDim+r2-1,2*r2)
+    xMesh, yMesh = np.meshgrid(xValues, yValues)
 
+    phiMap = np.zeros([len(yValues), len(xValues)])
+    ampMap = np.zeros([len(yValues), len(xValues)])
 
+    listLoop = 0
+    for xLoop in range(0,xMax):
+        for yLoop in range(0,yMax):
+            if xLoop == 7 and yLoop == 4:
+                phiMap[yLoop,xLoop] = 0
+            else:
+                phiMap[yLoop,xLoop] = phiList[listLoop]
+                listLoop = listLoop + 1
 
+    listLoop = 0
+    for xLoop in range(0, xMax):
+        for yLoop in range(0, yMax):
+            if xLoop == 7 and yLoop == 4:
+                ampMap[yLoop, xLoop] = 0
+            else:
+                ampMap[yLoop, xLoop] = AList[listLoop]*BList[listLoop]
+                listLoop = listLoop + 1
+    plt.figure(1)
+    plt.imshow(phiMap,extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()), interpolation='none', cmap='rainbow')
+    plt.title('Phase')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.colorbar()
 
-
+    plt.figure(2)
+    plt.imshow(ampMap, extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()),
+               cmap='rainbow')
+    plt.title('Amplitude')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.colorbar()
+    plt.show()
 #*************************OLD ATTEMPT**************************
 # row = data[int(np.shape(data)[0]/2), :]
 # col = data[:, int(np.shape(data)[1]/2)]
