@@ -10,7 +10,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as img
-from scipy import optimize
+from scipy import optimize, interpolate
 import csv
 
 
@@ -127,6 +127,7 @@ r2 = np.sqrt(2)*r
 fittingCheck = 0
 mapCheck = 1
 
+#**********************************FITTING CALIBRATION IMAGES*****************************************************
 if fittingCheck == 1:
     for xLoop in range(1,xMax+1):
         for yLoop in range(1,yMax+1):
@@ -164,6 +165,7 @@ if fittingCheck == 1:
                 with open(dir+csvFilename, "ab") as output:
                     writer = csv.writer(output, lineterminator = '\n')
                     writer.writerow(params)
+#*************************************************GENRATING PHASE AND AMPLITUDE MAPS*******************************
 if mapCheck == 1:
     AList = []
     BList = []
@@ -192,13 +194,29 @@ if mapCheck == 1:
                 listLoop = listLoop + 1
 
     listLoop = 0
+    meanAList = []
     for xLoop in range(0, xMax):
         for yLoop in range(0, yMax):
             if xLoop == 7 and yLoop == 4:
                 ampMap[yLoop, xLoop] = 0
             else:
                 ampMap[yLoop, xLoop] = AList[listLoop]*BList[listLoop]
+                meanAList.append(max(AList[listLoop],BList[listLoop]))
                 listLoop = listLoop + 1
+
+    #Determines an approximation for the amplitude of the center calibration patch
+    meanA = np.average(meanAList)
+    ampMap[4,7] = meanA**2
+
+
+    #Interpolation of Amplitude Map
+    interpAmpMapObject = interpolate.interp2d(xValues,yValues,ampMap, kind='cubic')
+
+    newXValues = np.arange(r1, xDim + r1 - 1, 1)
+    newYValues = np.arange(r2, yDim + r2 - 1, 1)
+    interpAmpMap = interpAmpMapObject(newXValues,newYValues)
+
+    #PLOTTING
     plt.figure(1)
     plt.imshow(phiMap,extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()), interpolation='none', cmap='rainbow')
     plt.title('Phase')
@@ -207,13 +225,14 @@ if mapCheck == 1:
     plt.colorbar()
 
     plt.figure(2)
-    plt.imshow(ampMap, extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()),
+    plt.contourf(interpAmpMap, extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()),
                cmap='rainbow')
     plt.title('Amplitude')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.colorbar()
     plt.show()
+    
 #*************************OLD ATTEMPT**************************
 # row = data[int(np.shape(data)[0]/2), :]
 # col = data[:, int(np.shape(data)[1]/2)]
