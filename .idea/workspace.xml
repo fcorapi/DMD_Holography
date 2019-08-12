@@ -19,8 +19,8 @@
       <file leaf-file-name="gratingGenerator.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="139">
-              <caret line="35" selection-start-line="35" selection-end-line="35" selection-end-column="39" />
+            <state relative-caret-position="105">
+              <caret line="57" column="49" lean-forward="true" selection-start-line="57" selection-start-column="49" selection-end-line="57" selection-end-column="49" />
               <folding>
                 <element signature="e#153#171#0" expanded="true" />
               </folding>
@@ -43,7 +43,7 @@
       <file leaf-file-name="gaussianFit2D.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gaussianFit2D.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
+            <state relative-caret-position="17">
               <caret line="2" column="91" selection-start-line="2" selection-start-column="91" selection-end-line="2" selection-end-column="91" />
             </state>
           </provider>
@@ -52,8 +52,8 @@
       <file leaf-file-name="sineFit2D.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/sineFit2D.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-677">
-              <caret line="234" column="4" selection-start-line="234" selection-start-column="4" selection-end-line="234" selection-end-column="4" />
+            <state relative-caret-position="241">
+              <caret line="238" column="38" selection-start-line="238" selection-start-column="38" selection-end-line="238" selection-end-column="38" />
               <folding>
                 <element signature="e#385#403#0" expanded="true" />
               </folding>
@@ -386,15 +386,15 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/gaussianFit2D.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
+        <state relative-caret-position="17">
           <caret line="2" column="91" selection-start-line="2" selection-start-column="91" selection-end-line="2" selection-end-column="91" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="139">
-          <caret line="35" selection-start-line="35" selection-end-line="35" selection-end-column="39" />
+        <state relative-caret-position="105">
+          <caret line="57" column="49" lean-forward="true" selection-start-line="57" selection-start-column="49" selection-end-line="57" selection-end-column="49" />
           <folding>
             <element signature="e#153#171#0" expanded="true" />
           </folding>
@@ -403,8 +403,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/sineFit2D.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-677">
-          <caret line="234" column="4" selection-start-line="234" selection-start-column="4" selection-end-line="234" selection-end-column="4" />
+        <state relative-caret-position="241">
+          <caret line="238" column="38" selection-start-line="238" selection-start-column="38" selection-end-line="238" selection-end-column="38" />
           <folding>
             <element signature="e#385#403#0" expanded="true" />
           </folding>

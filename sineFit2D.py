@@ -204,35 +204,93 @@ if mapCheck == 1:
                 meanAList.append(max(AList[listLoop],BList[listLoop]))
                 listLoop = listLoop + 1
 
+    #Vertical Phase Unwrapping
+    unwrapPhiMap = np.zeros(np.shape(phiMap))
+    unwrapPhiMap[:,:] = phiMap
+    for wrapLoopx in range(0,xMax):
+        for wrapLoopy in range(2,yMax):
+            slope = unwrapPhiMap[wrapLoopy-1,wrapLoopx] - unwrapPhiMap[wrapLoopy-2,wrapLoopx]
+            expectedPhi = unwrapPhiMap[wrapLoopy-1,wrapLoopx] + slope
+            measuredPhi = unwrapPhiMap[wrapLoopy,wrapLoopx]
+            m = round((expectedPhi-measuredPhi)/(2*np.pi))
+            unwrapPhiMap[wrapLoopy, wrapLoopx] = unwrapPhiMap[wrapLoopy,wrapLoopx]+2*np.pi*m
+
+    #Horizontal Phase Unwrapping
+    unwrapPhiMap2 = np.zeros(np.shape(unwrapPhiMap))
+    unwrapPhiMap2[:, :] = unwrapPhiMap
+    for wrapLoopx in range(2, xMax):
+        for wrapLoopy in range(0, yMax):
+            slope = unwrapPhiMap2[wrapLoopy, wrapLoopx-1] - unwrapPhiMap2[wrapLoopy, wrapLoopx-2]
+            expectedPhi = unwrapPhiMap2[wrapLoopy, wrapLoopx-1] + slope
+            measuredPhi = unwrapPhiMap2[wrapLoopy, wrapLoopx]
+            m = round((expectedPhi - measuredPhi) / (2 * np.pi))
+            unwrapPhiMap2[wrapLoopy, wrapLoopx] = unwrapPhiMap2[wrapLoopy, wrapLoopx] + 2 * np.pi * m
+
+    #Interpolation of Phase Map
+    interpPhiMapObject = interpolate.interp2d(xValues, yValues, unwrapPhiMap2, kind='cubic')
+
+    newXValuesPhi = np.arange(r1, xDim - r1, 1)
+    newYValuesPhi = np.arange(r2, yDim - r2, 1)
+
+    interpPhiMap = interpPhiMapObject(newXValuesPhi, newYValuesPhi)
+
+    interpPhiMapResized = np.zeros([yDim, xDim])
+    interpPhiMapResized[int(r2):interpPhiMap.shape[0] + int(r2), int(r1):interpPhiMap.shape[1] + int(r1)] = interpPhiMap
+
     #Determines an approximation for the amplitude of the center calibration patch
     meanA = np.average(meanAList)
     ampMap[4,7] = meanA**2
 
-
     #Interpolation of Amplitude Map
     interpAmpMapObject = interpolate.interp2d(xValues,yValues,ampMap, kind='cubic')
 
-    newXValues = np.arange(r1, xDim + r1 - 1, 1)
-    newYValues = np.arange(r2, yDim + r2 - 1, 1)
-    interpAmpMap = interpAmpMapObject(newXValues,newYValues)
+    newXValues = np.arange(r1, xDim-r1, 1)
+    newYValues = np.arange(r2, yDim-r2, 1)
+
+    interpAmpMap = interpAmpMapObject(newXValues, newYValues)
+
+    interpAmpMapResized = np.zeros([yDim, xDim])
+    interpAmpMapResized[int(r2):interpAmpMap.shape[0]+int(r2),int(r1):interpAmpMap.shape[1]+int(r1)] = interpAmpMap
 
     #PLOTTING
     plt.figure(1)
-    plt.imshow(phiMap,extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()), interpolation='none', cmap='rainbow')
+    plt.imshow(phiMap,extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
     plt.title('Phase')
     plt.xlabel('X')
     plt.ylabel('Y')
     plt.colorbar()
 
     plt.figure(2)
-    plt.contourf(interpAmpMap, extent=(xValues.min(), xValues.max(), yValues.max(), yValues.min()),
+    plt.imshow(unwrapPhiMap, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    plt.title('Phase, Unwrapped Vertically')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.colorbar()
+
+    plt.figure(3)
+    plt.imshow(unwrapPhiMap2, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    plt.title('Phase, Unwrapped')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.colorbar()
+
+    plt.figure(4)
+    plt.imshow(interpPhiMapResized, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    plt.title('Phase, Unwrapped (Interpolated)')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.colorbar()
+
+    plt.figure(5)
+    plt.contourf(interpAmpMapResized, extent=(0, xDim, yDim, 0), interpolation='none', origin='upper',
                cmap='rainbow')
     plt.title('Amplitude')
     plt.xlabel('X')
     plt.ylabel('Y')
+    plt.gca().invert_yaxis()
     plt.colorbar()
     plt.show()
-    
+
 #*************************OLD ATTEMPT**************************
 # row = data[int(np.shape(data)[0]/2), :]
 # col = data[:, int(np.shape(data)[1]/2)]
