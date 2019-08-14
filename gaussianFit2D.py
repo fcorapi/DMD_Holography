@@ -13,7 +13,7 @@ from scipy import optimize
 def gaussian(a, x_0, y_0, wx, wy):
     wx = float(wx)
     wy = float(wy)
-    return lambda x,y: a*np.exp(np.power(((x-x_0)/wx),2)+np.power(((y-y_0)/wy),2))
+    return lambda x,y: a*np.exp(-np.power(((x-x_0)/wx),2)-np.power(((y-y_0)/wy),2))
 
 def moments(data):
     total = data.sum()

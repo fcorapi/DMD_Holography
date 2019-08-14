@@ -1,9 +1,10 @@
 #sineFit2D
-#This program fits a 2-dimensional sine function to an image. Used for determing the phase parameters
-#for the DMD interference patterns in order to obtain a calibration phase map.
+#This program fits a 2-dimensional sine function to an image. Used for determining the phase parameters
+#for the DMD interference patterns in order to obtain a calibration phase map. It will also generate an amplitude mad
+#and a hologram used for beam shaping.
 #Modified the 2D Gaussian Fit code from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#July 17th, 2019
+#August 12th, 2019
 
 #Import Directories
 import numpy as np
@@ -100,22 +101,35 @@ def fitSine2D(data, xPos, yPos):
     # print success
     return p.x
 
+def grating(x,y,p,theta):
+    g = np.round(0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta)))))
+    return g
+
+def gaussian(a, x_0, y_0, wx, wy):
+    wx = float(wx)
+    wy = float(wy)
+    return lambda x,y: a*np.exp(-np.power(((x-x_0)/wx),2)-np.power(((y-y_0)/wy),2))
 
 #****************END OF FUNCTIONS**************************************************************************************
 
 #Image Directories
 dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
-cropDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\Cropped\\'
-fitDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\Fitted\\'
+targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
+targetFilename = 'smallTriforce'
+cropDir = dir + 'Cropped\\'
+fitDir = dir + 'Fitted\\'
 filename = 'CI3_X4Y7'
 csvFilename = 'CI3_Params.csv'
 filenamePrefix = 'CI3_'
 ext1 = '.bmp'
 ext2 = '.png'
+
 #Select the cropping region
 cropCoords = (590,420,770,580)
-xMax = 16
-yMax = 10
+
+#DMD Image Parameters
+xMax = 16 #Maximum X-value in calibration images
+yMax = 10 #Maximum Y-value in calibration images
 xDim = 912 #Length of DMD image
 yDim = 1140#Width of DMD image
 xDMDDim = 1290
@@ -123,9 +137,13 @@ yDMDDim = 806
 r = 1140/(2*np.sqrt(2)*10) #radius of calibration patch
 r1 = r/np.sqrt(2)
 r2 = np.sqrt(2)*r
+period = 4 #period of grating in pixels
+angle = 0.2 #grating angle in radians
 
-fittingCheck = 0
-mapCheck = 1
+#Program Sequence Initialization
+fittingCheck = 0 #set to 1 to fit interference patterns
+mapCheck = 1 #set to 1 to generate amplitude and phase maps
+hologramCheck = 1 #set to 1 to generate hologram
 
 #**********************************FITTING CALIBRATION IMAGES*****************************************************
 if fittingCheck == 1:
@@ -165,6 +183,7 @@ if fittingCheck == 1:
                 with open(dir+csvFilename, "ab") as output:
                     writer = csv.writer(output, lineterminator = '\n')
                     writer.writerow(params)
+
 #*************************************************GENRATING PHASE AND AMPLITUDE MAPS*******************************
 if mapCheck == 1:
     AList = []
@@ -249,47 +268,106 @@ if mapCheck == 1:
 
     interpAmpMap = interpAmpMapObject(newXValues, newYValues)
 
+    normAmpMap = np.zeros(np.shape(interpAmpMap))
+    normAmpMap[:,:] = interpAmpMap/np.amax(interpAmpMap)
+
     interpAmpMapResized = np.zeros([yDim, xDim])
     interpAmpMapResized[int(r2):interpAmpMap.shape[0]+int(r2),int(r1):interpAmpMap.shape[1]+int(r1)] = interpAmpMap
 
-    #PLOTTING
-    plt.figure(1)
-    plt.imshow(phiMap,extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
-    plt.title('Phase')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.colorbar()
+    normAmpMapResized = np.zeros(np.shape(interpAmpMapResized))
+    normAmpMapResized[:,:] = interpAmpMapResized/np.amax(interpAmpMapResized)
 
-    plt.figure(2)
-    plt.imshow(unwrapPhiMap, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
-    plt.title('Phase, Unwrapped Vertically')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.colorbar()
-
-    plt.figure(3)
-    plt.imshow(unwrapPhiMap2, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
-    plt.title('Phase, Unwrapped')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.colorbar()
-
-    plt.figure(4)
-    plt.imshow(interpPhiMapResized, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
-    plt.title('Phase, Unwrapped (Interpolated)')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.colorbar()
-
+    # #PLOTTING
+    # plt.figure(1)
+    # plt.imshow(phiMap,extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    # plt.title('Phase')
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.colorbar()
+    #
+    # plt.figure(2)
+    # plt.imshow(unwrapPhiMap, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    # plt.title('Phase, Unwrapped Vertically')
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.colorbar()
+    #
+    # plt.figure(3)
+    # plt.imshow(unwrapPhiMap2, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    # plt.title('Phase, Unwrapped')
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.colorbar()
+    #
+    # plt.figure(4)
+    # plt.imshow(interpPhiMapResized, extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
+    # plt.title('Phase, Unwrapped (Interpolated)')
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.colorbar()
+    #
     plt.figure(5)
-    plt.contourf(interpAmpMapResized, extent=(0, xDim, yDim, 0), interpolation='none', origin='upper',
+    plt.imshow(interpAmpMap, extent=(0, xDim, yDim, 0), interpolation='none',
                cmap='rainbow')
+    #origin = 'upper', if using contourf
     plt.title('Amplitude')
     plt.xlabel('X')
     plt.ylabel('Y')
-    plt.gca().invert_yaxis()
+    #plt.gca().invert_yaxis() if using contourf
     plt.colorbar()
     plt.show()
+
+#******************************HOLOGRAM GENERATION*****************************************************
+if hologramCheck == 1:
+
+    xVals = np.arange(0, xDim, 1)
+    yVals = np.arange(0, yDim, 1)
+    xMesh, yMesh = np.meshgrid(xVals, yVals)
+
+    gauss = gaussian(1, xDim/2, yDim/2, 1, 1)(xMesh, yMesh)
+    #Obtain Target Image
+    targetImage = Image.open(targetDir+targetFilename+ext1)
+    target = np.array(targetImage)
+
+    #Plot Target Image
+    plt.figure(1)
+    plt.imshow(gauss)
+    plt.colorbar()
+
+    #Calculate the amplitude and phase of the FT of the Target Image
+    targetFT = np.fft.fft2(gauss)
+    targetFTShift = np.fft.fftshift(targetFT)
+    targetAmp = np.abs(targetFTShift)/np.amax(np.abs(targetFTShift))
+    targetPhase = np.arctan(np.imag(targetFTShift)/(np.real(targetFTShift)+1e-10))
+
+    print np.shape(targetFTShift)
+
+    #Plot Amplitude and Phase of Target Image
+    plt.figure(2)
+    plt.imshow(targetAmp)
+    plt.colorbar()
+
+    plt.figure(3)
+    plt.imshow(targetPhase)
+    plt.colorbar()
+
+    ampCoeff = targetAmp[int(r2):normAmpMap.shape[0]+int(r2),int(r1):normAmpMap.shape[1]+int(r1)]/normAmpMap
+    ampCoeffNorm = ampCoeff/np.amax(ampCoeff)
+    print np.shape(ampCoeff)
+
+    phaseDifference = targetPhase[int(r2):interpPhiMap.shape[0] + int(r2), int(r1):interpPhiMap.shape[1] + int(r1)] - interpPhiMap
+
+    plt.figure(4)
+    plt.imshow(phaseDifference)
+    plt.colorbar()
+
+    plt.figure(5)
+    plt.imshow(ampCoeffNorm)
+    plt.colorbar()
+    plt.clim(0, 0.02)
+    plt.show()
+
+
 
 #*************************OLD ATTEMPT**************************
 # row = data[int(np.shape(data)[0]/2), :]
