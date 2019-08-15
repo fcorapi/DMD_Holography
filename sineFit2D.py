@@ -17,13 +17,13 @@ import csv
 
 #****************************FUNCTIONS*****************************************************************8
 #Define the fitting function, a 2-dimensional sine function
-def sine2D(A, B, x_0, y_0, phi):
+def sine2D(A, B, x_0, y_0, phi, wx, wy, gx_0, gy_0):
     A = float(A)
     B = float(B)
     x_0 = float(x_0)
     y_0 = float(y_0)
     phi = float(phi)
-    return lambda x,y: A**2 + B**2 + 2*A*B*np.cos(x_0*x + y_0*y + phi)
+    return lambda x,y: (A**2 + B**2 + 2*A*B*np.cos(x_0*x + y_0*y + phi))*np.exp(-np.power(((x-gx_0)/wx),2)-np.power(((y-gy_0)/wy),2))
 
 #Determines the indices of the local minima within a list
 def local_min(list):
@@ -88,21 +88,26 @@ def guessParams(data,xPos, yPos):
 
     phi = 0
 
-    return A, B, x_0, y_0, phi
+    wx = 100
+    wy = 100
+    gx_0 = 200 #Half the Size of the length of the cropped region
+    gy_0 = 175 #Half the Size of the width of the cropped region
+
+    return A, B, x_0, y_0, phi,wx, wy, gx_0, gy_0
 
 #Using the initial guess parameters from guessParams, the optimal parameters are determined using the following function
 #A least Squares method is used.
 def fitSine2D(data, xPos, yPos):
     params = guessParams(data, xPos, yPos)
-    paramBounds = ([0,0,-np.inf,-np.inf,0],[np.inf,np.inf,np.inf,np.inf,2*np.pi])
+    paramBounds = ([0,0,-np.inf,-np.inf,0,0,0,0,0],[np.inf,np.inf,np.inf,np.inf,2*np.pi,np.inf,np.inf,np.inf,np.inf])
     errorfunction = lambda p: np.ravel(sine2D(*p)(*np.indices(data.shape)) -
                                  data)
     p = optimize.least_squares(errorfunction, params, bounds = paramBounds)
     # print success
     return p.x
 
-def grating(x,y,p,theta):
-    g = np.round(0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta)))))
+def hologram(x,y,p,theta,phi,threshold):
+    g = np.round(0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta))+ phi)))
     return g
 
 def gaussian(a, x_0, y_0, wx, wy):
@@ -117,15 +122,15 @@ dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
 targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
 targetFilename = 'smallTriforce'
 cropDir = dir + 'Cropped2\\'
-fitDir = dir + 'Fitted\\'
+fitDir = dir + 'Fitted2\\'
 filename = 'CI3_X4Y7'
-csvFilename = 'CI3_Params.csv'
+csvFilename = 'CI3_Params2.csv'
 filenamePrefix = 'CI3_'
 ext1 = '.bmp'
 ext2 = '.png'
 
 #Select the cropping region
-cropCoords = (590,420,770,580)
+cropCoords = (500,300,850,700)
 
 #DMD Image Parameters
 xMax = 16 #Maximum X-value in calibration images
@@ -306,16 +311,16 @@ if mapCheck == 1:
     # plt.ylabel('Y')
     # plt.colorbar()
     #
-    plt.figure(5)
-    plt.imshow(interpAmpMap, extent=(0, xDim, yDim, 0), interpolation='none',
-               cmap='rainbow')
-    #origin = 'upper', if using contourf
-    plt.title('Amplitude')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    #plt.gca().invert_yaxis() if using contourf
-    plt.colorbar()
-    plt.show()
+    # plt.figure(5)
+    # plt.imshow(interpAmpMapResized, extent=(0, xDim, yDim, 0), interpolation='none',
+    #            cmap='rainbow')
+    # #origin = 'upper', if using contourf
+    # plt.title('Amplitude')
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # #plt.gca().invert_yaxis() if using contourf
+    # plt.colorbar()
+    # plt.show()
 
 #******************************HOLOGRAM GENERATION*****************************************************
 if hologramCheck == 1:
@@ -353,18 +358,35 @@ if hologramCheck == 1:
 
     ampCoeff = targetAmp[int(r2):normAmpMap.shape[0]+int(r2),int(r1):normAmpMap.shape[1]+int(r1)]/normAmpMap
     ampCoeffNorm = ampCoeff/np.amax(ampCoeff)
-    print np.shape(ampCoeff)
+    # print np.shape(ampCoeff)
+
+    ampCoeffNormResized = np.zeros([yDim, xDim])
+    ampCoeffNormResized[int(r2):interpAmpMap.shape[0] + int(r2), int(r1):interpAmpMap.shape[1] + int(r1)] = ampCoeffNorm
 
     phaseDifference = targetPhase[int(r2):interpPhiMap.shape[0] + int(r2), int(r1):interpPhiMap.shape[1] + int(r1)] - interpPhiMap
 
+    phaseDifferenceResized = np.zeros([yDim, xDim])
+    phaseDifferenceResized[int(r2):interpAmpMap.shape[0]+int(r2),int(r1):interpAmpMap.shape[1]+int(r1)] = phaseDifference
+
+    ampThreshold = np.zeros(np.shape(ampCoeffNorm))
+    ampThreshold[:,:] = 1-ampCoeffNorm/2
+
+    gratingXVals = np.arange(r1, xDim-r1, 1)
+    gratingYVals = np.arange(r2, yDim-r2, 1)
+    gratingXMesh, gratingYMesh = np.meshgrid(gratingXVals, gratingYVals)
+
+
+
+    
+
     plt.figure(4)
-    plt.imshow(phaseDifference)
+    plt.imshow(phaseDifferenceResized)
     plt.colorbar()
 
     plt.figure(5)
-    plt.imshow(ampCoeffNorm)
+    plt.imshow(ampCoeffNormResized)
     plt.colorbar()
-    plt.clim(0, 0.02)
+    # plt.clim(0, 0.02)
     plt.show()
 
 
