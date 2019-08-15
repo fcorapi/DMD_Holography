@@ -4,7 +4,7 @@
 #and a hologram used for beam shaping.
 #Modified the 2D Gaussian Fit code from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#August 12th, 2019
+#August 15th, 2019
 
 #Import Directories
 import numpy as np
@@ -49,7 +49,7 @@ def guessParams(data,xPos, yPos):
     f2 = 4.0 #cm
     f3 = 30.0 #cm
 
-    #Position of the Center patch (X=1 Y=1 is top left corner of DMD)
+    #Position of the Center patch (X=1 Y=1 is top left corner of DMD) NEEDS TO CHANGE IF CENTER PATCH CHANGES
     xCen = 8.0
     yCen = 5.0
 
@@ -106,10 +106,20 @@ def fitSine2D(data, xPos, yPos):
     # print success
     return p.x
 
+#Generates a hologram by modulating the phase and the amplitude using the phase difference
+#  and amplitude coefficient maps
 def hologram(x,y,p,theta,phi,threshold):
-    g = np.round(0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta))+ phi)))
-    return g
+    h = 0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta)) + phi))
 
+    for xLoop in range(np.shape(threshold)[0]):
+        for yLoop in range(np.shape(threshold)[1]):
+            if h[xLoop,yLoop] < threshold[xLoop, yLoop]:
+                h[xLoop,yLoop] = 0
+            elif h[xLoop,yLoop] >= threshold[xLoop, yLoop]:
+                h[xLoop, yLoop] = 1
+    return h
+
+#Just a Gaussian Function
 def gaussian(a, x_0, y_0, wx, wy):
     wx = float(wx)
     wy = float(wy)
@@ -120,9 +130,11 @@ def gaussian(a, x_0, y_0, wx, wy):
 #Image Directories
 dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
 targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
-targetFilename = 'smallTriforce'
+targetFilename = 'smallTriforce2'
 cropDir = dir + 'Cropped2\\'
 fitDir = dir + 'Fitted2\\'
+hologramDir = dir + 'Hologram\\'
+hologramFilename = 'TestHologram1'
 filename = 'CI3_X4Y7'
 csvFilename = 'CI3_Params2.csv'
 filenamePrefix = 'CI3_'
@@ -139,11 +151,12 @@ xDim = 912 #Length of DMD image
 yDim = 1140#Width of DMD image
 xDMDDim = 1290
 yDMDDim = 806
+#These radii need to match the radii of the calibration patches made using gratingGenerator.py
 r = 1140/(2*np.sqrt(2)*10) #radius of calibration patch
 r1 = r/np.sqrt(2)
 r2 = np.sqrt(2)*r
-period = 4 #period of grating in pixels
-angle = 0.2 #grating angle in radians
+period = 4 #period of grating in pixels (match original grating)
+angle = 0.2 #grating angle in radians (match original grating)
 
 #Program Sequence Initialization
 fittingCheck = 0 #set to 1 to fit interference patterns
@@ -325,19 +338,16 @@ if mapCheck == 1:
 #******************************HOLOGRAM GENERATION*****************************************************
 if hologramCheck == 1:
 
-    xVals = np.arange(0, xDim, 1)
-    yVals = np.arange(0, yDim, 1)
-    xMesh, yMesh = np.meshgrid(xVals, yVals)
+    #If wanting to create a gaussian image, use this code
+    # xVals = np.arange(0, xDim, 1)
+    # yVals = np.arange(0, yDim, 1)
+    # xMesh, yMesh = np.meshgrid(xVals, yVals)
+    #
+    # gauss = gaussian(1, xDim/2, yDim/2, 1, 1)(xMesh, yMesh)
 
-    gauss = gaussian(1, xDim/2, yDim/2, 1, 1)(xMesh, yMesh)
     #Obtain Target Image
     targetImage = Image.open(targetDir+targetFilename+ext1)
     target = np.array(targetImage) #Use this or gauss for testing
-
-    #Plot Target Image
-    plt.figure(1)
-    plt.imshow(target)
-    plt.colorbar()
 
     #Calculate the amplitude and phase of the FT of the Target Image
     targetFT = np.fft.fft2(target)
@@ -347,7 +357,46 @@ if hologramCheck == 1:
 
     print np.shape(targetFTShift)
 
-    #Plot Amplitude and Phase of Target Image
+    #Determine the amplitude coefficient map needed for amplitude modulation
+    ampCoeff = targetAmp/normAmpMap
+    ampCoeffNorm = ampCoeff/np.amax(ampCoeff)
+    # print np.shape(ampCoeff)
+
+    #Resize the map by padding outside with zeros
+    ampCoeffNormResized = np.zeros([yDim, xDim])
+    ampCoeffNormResized[int(r2):ampCoeffNorm.shape[0] + int(r2), int(r1):ampCoeffNorm.shape[1] + int(r1)] = ampCoeffNorm
+
+    phaseDifference = targetPhase - interpPhiMap
+
+    phaseDifferenceResized = np.zeros([yDim, xDim])
+    phaseDifferenceResized[int(r2):phaseDifference.shape[0]+int(r2),int(r1):phaseDifference.shape[1]+int(r1)] = phaseDifference
+
+    ampThreshold = np.zeros(np.shape(ampCoeffNorm))
+    ampThreshold[:,:] = 1-ampCoeffNorm/2
+
+    hologramXVals = np.arange(r1, xDim-r1, 1)
+    hologramYVals = np.arange(r2, yDim-r2, 1)
+    hologramXMesh, hologramYMesh = np.meshgrid(hologramXVals, hologramYVals)
+
+    h = hologram(hologramXMesh, hologramYMesh, period, angle, phaseDifference, ampThreshold)
+
+    holo = np.zeros([yDim,xDim])
+    holo[int(r2):h.shape[0]+int(r2),int(r1):h.shape[1]+int(r1)] = h
+
+    hologramImage = Image.new('1', (xDim,yDim))
+    pixelImage = hologramImage.load()
+    for i in range(hologramImage.size[0]):
+        for j in range(hologramImage.size[1]):
+            pixelImage[i, j] = (holo[j][i],)
+
+    hologramImage.save(hologramDir+hologramFilename+ext1)
+
+    #Plot Target Image
+    plt.figure(1)
+    plt.imshow(target)
+    plt.colorbar()
+
+    # Plot Amplitude and Phase of Target Image
     plt.figure(2)
     plt.imshow(targetAmp)
     plt.colorbar()
@@ -355,29 +404,6 @@ if hologramCheck == 1:
     plt.figure(3)
     plt.imshow(targetPhase)
     plt.colorbar()
-
-    ampCoeff = targetAmp[int(r2):normAmpMap.shape[0]+int(r2),int(r1):normAmpMap.shape[1]+int(r1)]/normAmpMap
-    ampCoeffNorm = ampCoeff/np.amax(ampCoeff)
-    # print np.shape(ampCoeff)
-
-    ampCoeffNormResized = np.zeros([yDim, xDim])
-    ampCoeffNormResized[int(r2):interpAmpMap.shape[0] + int(r2), int(r1):interpAmpMap.shape[1] + int(r1)] = ampCoeffNorm
-
-    phaseDifference = targetPhase[int(r2):interpPhiMap.shape[0] + int(r2), int(r1):interpPhiMap.shape[1] + int(r1)] - interpPhiMap
-
-    phaseDifferenceResized = np.zeros([yDim, xDim])
-    phaseDifferenceResized[int(r2):interpAmpMap.shape[0]+int(r2),int(r1):interpAmpMap.shape[1]+int(r1)] = phaseDifference
-
-    ampThreshold = np.zeros(np.shape(ampCoeffNorm))
-    ampThreshold[:,:] = 1-ampCoeffNorm/2
-
-    gratingXVals = np.arange(r1, xDim-r1, 1)
-    gratingYVals = np.arange(r2, yDim-r2, 1)
-    gratingXMesh, gratingYMesh = np.meshgrid(gratingXVals, gratingYVals)
-
-
-
-    
 
     plt.figure(4)
     plt.imshow(phaseDifferenceResized)
