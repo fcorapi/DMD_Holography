@@ -116,7 +116,7 @@ def gaussian(a, x_0, y_0, wx, wy):
 dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
 targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
 targetFilename = 'smallTriforce'
-cropDir = dir + 'Cropped\\'
+cropDir = dir + 'Cropped2\\'
 fitDir = dir + 'Fitted\\'
 filename = 'CI3_X4Y7'
 csvFilename = 'CI3_Params.csv'
@@ -143,7 +143,7 @@ angle = 0.2 #grating angle in radians
 #Program Sequence Initialization
 fittingCheck = 0 #set to 1 to fit interference patterns
 mapCheck = 1 #set to 1 to generate amplitude and phase maps
-hologramCheck = 1 #set to 1 to generate hologram
+hologramCheck = 1 #set to 1 to generate hologram (needs map check set to 1)
 
 #**********************************FITTING CALIBRATION IMAGES*****************************************************
 if fittingCheck == 1:
@@ -327,15 +327,15 @@ if hologramCheck == 1:
     gauss = gaussian(1, xDim/2, yDim/2, 1, 1)(xMesh, yMesh)
     #Obtain Target Image
     targetImage = Image.open(targetDir+targetFilename+ext1)
-    target = np.array(targetImage)
+    target = np.array(targetImage) #Use this or gauss for testing
 
     #Plot Target Image
     plt.figure(1)
-    plt.imshow(gauss)
+    plt.imshow(target)
     plt.colorbar()
 
     #Calculate the amplitude and phase of the FT of the Target Image
-    targetFT = np.fft.fft2(gauss)
+    targetFT = np.fft.fft2(target)
     targetFTShift = np.fft.fftshift(targetFT)
     targetAmp = np.abs(targetFTShift)/np.amax(np.abs(targetFTShift))
     targetPhase = np.arctan(np.imag(targetFTShift)/(np.real(targetFTShift)+1e-10))
