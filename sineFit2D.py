@@ -366,6 +366,7 @@ if hologramCheck == 1:
     ampCoeffNormResized = np.zeros([yDim, xDim])
     ampCoeffNormResized[int(r2):ampCoeffNorm.shape[0] + int(r2), int(r1):ampCoeffNorm.shape[1] + int(r1)] = ampCoeffNorm
 
+    #Determine the phase difference map needed for phase modulation
     phaseDifference = targetPhase - interpPhiMap
 
     phaseDifferenceResized = np.zeros([yDim, xDim])
@@ -374,15 +375,17 @@ if hologramCheck == 1:
     ampThreshold = np.zeros(np.shape(ampCoeffNorm))
     ampThreshold[:,:] = 1-ampCoeffNorm/2
 
+    #********************Generated the hologram************************
     hologramXVals = np.arange(r1, xDim-r1, 1)
     hologramYVals = np.arange(r2, yDim-r2, 1)
     hologramXMesh, hologramYMesh = np.meshgrid(hologramXVals, hologramYVals)
 
     h = hologram(hologramXMesh, hologramYMesh, period, angle, phaseDifference, ampThreshold)
-
+    #*******************************************************************
     holo = np.zeros([yDim,xDim])
     holo[int(r2):h.shape[0]+int(r2),int(r1):h.shape[1]+int(r1)] = h
 
+    #Save Hologram grating to an image
     hologramImage = Image.new('1', (xDim,yDim))
     pixelImage = hologramImage.load()
     for i in range(hologramImage.size[0]):
@@ -401,14 +404,17 @@ if hologramCheck == 1:
     plt.imshow(targetAmp)
     plt.colorbar()
 
+    #Plot Target Phase
     plt.figure(3)
     plt.imshow(targetPhase)
     plt.colorbar()
 
+    #Plot Phase Difference Resized
     plt.figure(4)
     plt.imshow(phaseDifferenceResized)
     plt.colorbar()
 
+    #Plot Amplitude Coefficient Map Resized and Normalized
     plt.figure(5)
     plt.imshow(ampCoeffNormResized)
     plt.colorbar()
