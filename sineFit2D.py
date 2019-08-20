@@ -1,10 +1,10 @@
 #sineFit2D
-#This program fits a 2-dimensional sine function to an image. Used for determining the phase parameters
-#for the DMD interference patterns in order to obtain a calibration phase map. It will also generate an amplitude mad
+#This program fits a 2-dimensional sine function, multiplied by a 2D gaussian to an image. Used for determining the phase parameters
+#for the DMD interference patterns in order to obtain a calibration phase map. It will also generate an amplitude map
 #and a hologram used for beam shaping.
 #Modified the 2D Gaussian Fit code from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#August 15th, 2019
+#Last Updated: August 20th, 2019
 
 #Import Directories
 import numpy as np
@@ -16,7 +16,7 @@ import csv
 
 
 #****************************FUNCTIONS*****************************************************************8
-#Define the fitting function, a 2-dimensional sine function
+#Define the fitting function, a 2-dimensional sine function multipled by a 2-dimensional gaussian function
 def sine2D(A, B, x_0, y_0, phi, wx, wy, gx_0, gy_0):
     A = float(A)
     B = float(B)
@@ -25,7 +25,7 @@ def sine2D(A, B, x_0, y_0, phi, wx, wy, gx_0, gy_0):
     phi = float(phi)
     return lambda x,y: (A**2 + B**2 + 2*A*B*np.cos(x_0*x + y_0*y + phi))*np.exp(-np.power(((x-gx_0)/wx),2)-np.power(((y-gy_0)/wy),2))
 
-#Determines the indices of the local minima within a list
+#Determines the indices of the local minima within a list (Not used anymore)
 def local_min(list):
     minIndices = [i for i,y in enumerate(list)
                   if ((i == 0) or (list[i-1] >= y))
@@ -33,6 +33,9 @@ def local_min(list):
     return minIndices
 
 #This function is used to make an accurate initial guess for the fitting paramters for the 2D sine function
+#It uses the relative positions of the calibration patches to calculate a guess for the period and angle of the
+#interference pattern. The guess for the amplitude assumes that A and B are equal and that the max value of the image
+#equal to (A+B)^2.
 def guessParams(data,xPos, yPos):
     xPos = float(xPos)
     yPos = float(yPos)
@@ -43,11 +46,11 @@ def guessParams(data,xPos, yPos):
 
     #Optical System Parameters
     wavelength = 0.760 #microns
-    dPatch = 0.0616 #cm
+    dPatch = 0.0616 #cm (distance between two adjacent patch centers)
     cameraPixelSize = 5.2 #microns/pixel
-    f1 = 10.0 #cm
-    f2 = 4.0 #cm
-    f3 = 30.0 #cm
+    f1 = 10.0 #cm (focal length of first lens after DMD)
+    f2 = 4.0 #cm (focal length of second lens after DMD)
+    f3 = 30.0 #cm (focal length of third lens after DMD)
 
     #Position of the Center patch (X=1 Y=1 is top left corner of DMD) NEEDS TO CHANGE IF CENTER PATCH CHANGES
     xCen = 8.0
@@ -130,11 +133,11 @@ def gaussian(a, x_0, y_0, wx, wy):
 #Image Directories
 dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
 targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
-targetFilename = 'smallTriforce2'
+targetFilename = 'triforce_RS2'
 cropDir = dir + 'Cropped2\\'
 fitDir = dir + 'Fitted2\\'
 hologramDir = dir + 'Hologram\\'
-hologramFilename = 'TestHologram1'
+hologramFilename = 'TestHologram2'
 filename = 'CI3_X4Y7'
 csvFilename = 'CI3_Params2.csv'
 filenamePrefix = 'CI3_'
@@ -420,61 +423,3 @@ if hologramCheck == 1:
     plt.colorbar()
     # plt.clim(0, 0.02)
     plt.show()
-
-
-
-#*************************OLD ATTEMPT**************************
-# row = data[int(np.shape(data)[0]/2), :]
-# col = data[:, int(np.shape(data)[1]/2)]
-# minIndicesX = local_min(col)
-# minIndicesY = local_min(row)
-#
-# periodGuessX = 0
-# nx = 0
-# for loop in range(0,len(minIndicesX)-1):
-#     guessX = minIndicesX[loop+1] - minIndicesX[loop]
-#     periodGuessX = periodGuessX + guessX
-#     nx = nx+1
-# if nx == 0:
-#     x_0 = 0
-# else:
-#     periodGuessX = periodGuessX/nx
-#     periodGuessX = -44.95
-#     x_0 = 2*np.pi/periodGuessX
-#
-# periodGuessY = 0
-# ny = 0
-# for loop in range(0, len(minIndicesY) - 1):
-#     guessY = minIndicesY[loop + 1] - minIndicesY[loop]
-#     periodGuessY = periodGuessY + guessY
-#     ny = ny + 1
-#
-# if ny == 0:
-#     y_0 = 0
-# else:
-#     periodGuessY = periodGuessY / ny
-#     periodGuessY = 10000
-#     y_0 = 2*np.pi/periodGuessY
-
-# print A,B,2*np.pi/x_0, 2*np.pi/y_0
-
-
-# ft = np.fft.fft2(data)
-# ftShift = np.fft.fftshift(ft)
-# magnitude = 200 * np.log(np.abs(ftShift))
-# # plt.imshow(magnitude)
-# # plt.show()
-# height = np.shape(magnitude)[0]
-# width = np.shape(magnitude)[1]
-# # plt.imshow(magnitude[0:height/2-3,0:width/2-3])
-# # plt.show()
-# # plt.imshow(magnitude[0:height/2-3,width/2+3:width-1])
-# # plt.show()
-# leftSum = magnitude[0:height/2-3,0:width/2-5].sum()
-# rightSum = magnitude[0:height/2-3,width/2+3:width-1].sum()
-# print leftSum, rightSum
-# print 2*np.pi/x_0, 2*np.pi/y_0
-# if leftSum >= rightSum:
-#     return A, B, x_0, y_0, phi
-# else:
-#     return A, B, x_0, y_0, phi
