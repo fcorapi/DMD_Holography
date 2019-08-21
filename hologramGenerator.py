@@ -1,6 +1,6 @@
-#sineFit2D
+#hologramGenerator
 #This program fits a 2-dimensional sine function, multiplied by a 2D gaussian to an image. Used for determining the phase parameters
-#for the DMD interference patterns in order to obtain a calibration phase map. It will also generate an amplitude map
+#for the DMD interference patterns in order to obtain a calibration phase map. It then generates an amplitude map
 #and a hologram used for beam shaping.
 #Modified the 2D Gaussian Fit code from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
@@ -32,7 +32,7 @@ def local_min(list):
                   and ((i == len(list)-1) or (y < list[i+1]))]
     return minIndices
 
-#This function is used to make an accurate initial guess for the fitting paramters for the 2D sine function
+#This function is used to make an accurate initial guess for the fitting paramters for the 2D sine function.
 #It uses the relative positions of the calibration patches to calculate a guess for the period and angle of the
 #interference pattern. The guess for the amplitude assumes that A and B are equal and that the max value of the image
 #equal to (A+B)^2.
@@ -44,7 +44,7 @@ def guessParams(data,xPos, yPos):
     A = np.sqrt(amplitude)/2
     B = A
 
-    #Optical System Parameters
+    #Optical System Parameters (NEEDS TO BE MODIFIED IF PATCHES OR SYSTEM CHANGES)
     wavelength = 0.760 #microns
     dPatch = 0.0616 #cm (distance between two adjacent patch centers)
     cameraPixelSize = 5.2 #microns/pixel
@@ -53,8 +53,9 @@ def guessParams(data,xPos, yPos):
     f3 = 30.0 #cm (focal length of third lens after DMD)
 
     #Position of the Center patch (X=1 Y=1 is top left corner of DMD) NEEDS TO CHANGE IF CENTER PATCH CHANGES
-    xCen = 8.0
-    yCen = 5.0
+    #MUST BE CONSISTENT WITH gratingGenerator CENTER PATCH LOCATION
+    xCen = 8.0 #must be float
+    yCen = 5.0 #must be float
 
     deltaX = xCen - xPos
     if deltaX == 0:
@@ -64,6 +65,7 @@ def guessParams(data,xPos, yPos):
     if deltaY == 0:
         deltaY = 1e-3
 
+    #Determines which quandrant the calibration patch resides in
     if xPos < xCen and yPos < yCen:
         theta = np.arctan(deltaX/deltaY)
     elif xPos < xCen and yPos == yCen:
@@ -82,7 +84,7 @@ def guessParams(data,xPos, yPos):
         theta = np.arctan(deltaX/deltaY)
 
     Xi = np.arctan((f2/f1)*np.sqrt(deltaX**2 + deltaY**2)*dPatch/f3)
-    print deltaX, deltaY, theta,Xi, xPos, yPos
+    # print deltaX, deltaY, theta, Xi, xPos, yPos
     periodGuessX = (wavelength/cameraPixelSize)/(np.sin(Xi)*np.cos(theta))
     periodGuessY = (wavelength/cameraPixelSize)/(np.sin(Xi)*np.sin(theta))
 
@@ -91,29 +93,35 @@ def guessParams(data,xPos, yPos):
 
     phi = 0
 
-    wx = 100
-    wy = 100
+    wx = 100 #Tweaked by just guessing until gaussian fit became accurate
+    wy = 100 #Tweaked by just guessing until gaussian fit became accurate
     gx_0 = 200 #Half the Size of the length of the cropped region
     gy_0 = 175 #Half the Size of the width of the cropped region
 
+    # Returns the guess for the parameters
     return A, B, x_0, y_0, phi,wx, wy, gx_0, gy_0
 
 #Using the initial guess parameters from guessParams, the optimal parameters are determined using the following function
 #A least Squares method is used.
 def fitSine2D(data, xPos, yPos):
+    #Obtain guess parameters
     params = guessParams(data, xPos, yPos)
+    #Set the bounds on what the determined fit parameters can be
     paramBounds = ([0,0,-np.inf,-np.inf,0,0,0,0,0],[np.inf,np.inf,np.inf,np.inf,2*np.pi,np.inf,np.inf,np.inf,np.inf])
+    #Define the error function to be minimized (difference between fit function and data)
     errorfunction = lambda p: np.ravel(sine2D(*p)(*np.indices(data.shape)) -
                                  data)
+    #Minimize error function
     p = optimize.least_squares(errorfunction, params, bounds = paramBounds)
-    # print success
+    #Returns the fit parameters
     return p.x
 
 #Generates a hologram by modulating the phase and the amplitude using the phase difference
-#  and amplitude coefficient maps
+#and amplitude coefficient maps.
 def hologram(x,y,p,theta,phi,threshold):
-    h = 0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta)) + phi))
+    h = 0.5*(1+np.cos((2*np.pi/p)*(x*np.cos(theta)+y*np.sin(theta)) + phi)) #Grating Equation
 
+    #Check whether the value of the grating equation at each pixel is greater or less than the amplitude threshold
     for xLoop in range(np.shape(threshold)[0]):
         for yLoop in range(np.shape(threshold)[1]):
             if h[xLoop,yLoop] < threshold[xLoop, yLoop]:
@@ -128,38 +136,41 @@ def gaussian(a, x_0, y_0, wx, wy):
     wy = float(wy)
     return lambda x,y: a*np.exp(-np.power(((x-x_0)/wx),2)-np.power(((y-y_0)/wy),2))
 
-#****************END OF FUNCTIONS**************************************************************************************
+#*********************************END OF FUNCTIONS************************************************************
 
 #Image Directories
-dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\'
-targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\'
-targetFilename = 'triforce_RS2'
-cropDir = dir + 'Cropped2\\'
-fitDir = dir + 'Fitted2\\'
-hologramDir = dir + 'Hologram\\'
-hologramFilename = 'TestHologram2'
-filename = 'CI3_X4Y7'
-csvFilename = 'CI3_Params2.csv'
-filenamePrefix = 'CI3_'
-ext1 = '.bmp'
-ext2 = '.png'
+dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\' #Directory containing calibration imgs
+targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\' #Directory containing target image
+targetFilename = 'triforce_RS2' #Filename of target excluding extensions (USER INPUT REQUIRED)
+cropDir = dir + 'Cropped2\\' #Directory where cropped images will be saved
+fitDir = dir + 'Fitted2\\' #Driectory where fitted images will be saved
+hologramDir = dir + 'Hologram\\' #Directory where hologram grating will be saved
+hologramFilename = 'TestHologram2' #Filename of hologram grating exluding extension (USER INPUT REQUIRED)
+csvFilename = 'CI3_Params2.csv' #Set the filename of the CSV file containing the fit parameters (USER INPUT REQUIRED)
+filenamePrefix = 'CI3_' #Used to help read in the calibration images
+ext1 = '.bmp' #filename extension
+ext2 = '.png' #filename extension
 
 #Select the cropping region
 cropCoords = (500,300,850,700)
 
 #DMD Image Parameters
-xMax = 16 #Maximum X-value in calibration images
-yMax = 10 #Maximum Y-value in calibration images
+xMax = 16 #Maximum X-value in calibration images (Number of patches in X direction)
+yMax = 10 #Maximum Y-value in calibration images (Number of patches in Y direction)
+xCenter = 8 #X-Location of Center Patch (Must match xCen and yCen in guessParams Function)
+yCenter = 5 #Y-Location of Center Patch (Must match xCen and yCen in guessParams Function)
 xDim = 912 #Length of DMD image
 yDim = 1140#Width of DMD image
-xDMDDim = 1290
-yDMDDim = 806
+xDMDDim = 1290 #Not used
+yDMDDim = 806 #Not used
 #These radii need to match the radii of the calibration patches made using gratingGenerator.py
+#****************MUST BE CONSISTENT WITH gratingGenerator**************************
 r = 1140/(2*np.sqrt(2)*10) #radius of calibration patch
-r1 = r/np.sqrt(2)
-r2 = np.sqrt(2)*r
+r1 = r/np.sqrt(2) #Scaling of radius due to DMD mirror orientations
+r2 = np.sqrt(2)*r #Scaling of radius due to DMD mirror orientations
 period = 4 #period of grating in pixels (match original grating)
 angle = 0.2 #grating angle in radians (match original grating)
+#*********************************************************************************
 
 #Program Sequence Initialization
 fittingCheck = 0 #set to 1 to fit interference patterns
@@ -170,7 +181,7 @@ hologramCheck = 1 #set to 1 to generate hologram (needs map check set to 1)
 if fittingCheck == 1:
     for xLoop in range(1,xMax+1):
         for yLoop in range(1,yMax+1):
-            if xLoop == 8 and yLoop == 5:
+            if xLoop == xCenter and yLoop == yCenter: #Skips the center patch (May be modified in the future)
                 continue
             image = Image.open(dir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + ext1)
             # data = np.array(image)[:, :, 0]

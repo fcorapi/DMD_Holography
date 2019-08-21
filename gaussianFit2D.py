@@ -1,5 +1,5 @@
 #gaussianFit2D
-#This program fits a gaussian to an image.
+#This program fits a gaussian to an image. Could be useful.
 #Adapted from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
 #June 27th, 2019

@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="12f17d46-ef8f-47d8-a3c6-a892baef911e" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/sineFit2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/sineFit2D.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/fftImage.py" beforeDir="false" afterPath="$PROJECT_DIR$/fftImage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gaussianFit2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/gaussianFit2D.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/gratingGenerator.py" beforeDir="false" afterPath="$PROJECT_DIR$/gratingGenerator.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hologramGenerator.py" beforeDir="false" afterPath="$PROJECT_DIR$/hologramGenerator.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -20,8 +22,8 @@
       <file leaf-file-name="gratingGenerator.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1139">
-              <caret line="70" column="42" selection-start-line="70" selection-start-column="42" selection-end-line="70" selection-end-column="42" />
+            <state relative-caret-position="-289">
+              <caret line="28" column="67" lean-forward="true" selection-start-line="28" selection-start-column="67" selection-end-line="28" selection-end-column="67" />
               <folding>
                 <element signature="e#153#171#0" expanded="true" />
               </folding>
@@ -32,8 +34,8 @@
       <file leaf-file-name="fftImage.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/fftImage.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="15" selection-start-line="15" selection-end-line="19" selection-end-column="46" />
+            <state relative-caret-position="34">
+              <caret line="2" column="9" selection-start-line="2" selection-start-column="9" selection-end-line="2" selection-end-column="9" />
               <folding>
                 <element signature="e#120#138#0" expanded="true" />
               </folding>
@@ -44,19 +46,19 @@
       <file leaf-file-name="gaussianFit2D.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gaussianFit2D.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="187">
-              <caret line="15" column="58" selection-start-line="15" selection-start-column="58" selection-end-line="15" selection-end-column="58" />
+            <state relative-caret-position="17">
+              <caret line="1" column="59" selection-start-line="1" selection-start-column="59" selection-end-line="1" selection-end-column="59" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sineFit2D.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/sineFit2D.py">
+      <file leaf-file-name="hologramGenerator.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/hologramGenerator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="52" column="56" selection-start-line="52" selection-start-column="56" selection-end-line="52" selection-end-column="56" />
+            <state relative-caret-position="156">
+              <caret line="184" column="24" lean-forward="true" selection-start-line="184" selection-start-column="24" selection-end-line="184" selection-end-column="24" />
               <folding>
-                <element signature="e#467#485#0" expanded="true" />
+                <element signature="e#510#528#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -71,16 +73,22 @@
       </list>
     </option>
   </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>filename</find>
+    </findStrings>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/gaussianFit2D.py" />
-        <option value="$PROJECT_DIR$/fftImage.py" />
-        <option value="$PROJECT_DIR$/gratingGenerator.py" />
         <option value="$PROJECT_DIR$/sineFit2D.py" />
+        <option value="$PROJECT_DIR$/fftImage.py" />
+        <option value="$PROJECT_DIR$/gaussianFit2D.py" />
+        <option value="$PROJECT_DIR$/gratingGenerator.py" />
+        <option value="$PROJECT_DIR$/hologramGenerator.py" />
       </list>
     </option>
   </component>
@@ -249,7 +257,7 @@
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4987715" weight="0.106398806" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4987715" visible="true" weight="0.106398806" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32838285" />
@@ -500,39 +508,49 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/sineFit2D.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="17" selection-start-line="6" selection-start-column="17" selection-end-line="6" selection-end-column="17" />
+          <folding>
+            <element signature="e#467#485#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/fftImage.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="15" selection-start-line="15" selection-end-line="19" selection-end-column="46" />
+        <state relative-caret-position="34">
+          <caret line="2" column="9" selection-start-line="2" selection-start-column="9" selection-end-line="2" selection-end-column="9" />
           <folding>
             <element signature="e#120#138#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/gaussianFit2D.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" column="59" selection-start-line="1" selection-start-column="59" selection-end-line="1" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1139">
-          <caret line="70" column="42" selection-start-line="70" selection-start-column="42" selection-end-line="70" selection-end-column="42" />
+        <state relative-caret-position="-289">
+          <caret line="28" column="67" lean-forward="true" selection-start-line="28" selection-start-column="67" selection-end-line="28" selection-end-column="67" />
           <folding>
             <element signature="e#153#171#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gaussianFit2D.py">
+    <entry file="file://$PROJECT_DIR$/hologramGenerator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="187">
-          <caret line="15" column="58" selection-start-line="15" selection-start-column="58" selection-end-line="15" selection-end-column="58" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sineFit2D.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="52" column="56" selection-start-line="52" selection-start-column="56" selection-end-line="52" selection-end-column="56" />
+        <state relative-caret-position="156">
+          <caret line="184" column="24" lean-forward="true" selection-start-line="184" selection-start-column="24" selection-end-line="184" selection-end-column="24" />
           <folding>
-            <element signature="e#467#485#0" expanded="true" />
+            <element signature="e#510#528#0" expanded="true" />
           </folding>
         </state>
       </provider>

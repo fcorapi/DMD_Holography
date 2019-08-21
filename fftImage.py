@@ -1,7 +1,8 @@
 #fftImage
-#This program takes the fourier transform of an image.
+#This program takes the fourier transform of an image. It is simply used for testing before implementation in main
+#program.
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#June 21th, 2019
+#Last Modified: August 20th, 2019
 
 import numpy as np
 from PIL import Image
