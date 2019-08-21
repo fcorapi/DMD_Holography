@@ -36,9 +36,11 @@ def local_min(list):
 #It uses the relative positions of the calibration patches to calculate a guess for the period and angle of the
 #interference pattern. The guess for the amplitude assumes that A and B are equal and that the max value of the image
 #equal to (A+B)^2.
-def guessParams(data,xPos, yPos):
+def guessParams(data,xPos, yPos, xCen, yCen):
     xPos = float(xPos)
     yPos = float(yPos)
+    xCen = float(xCen)
+    yCen = float(yCen)
     amplitude = data.max()
 
     A = np.sqrt(amplitude)/2
@@ -54,8 +56,9 @@ def guessParams(data,xPos, yPos):
 
     #Position of the Center patch (X=1 Y=1 is top left corner of DMD) NEEDS TO CHANGE IF CENTER PATCH CHANGES
     #MUST BE CONSISTENT WITH gratingGenerator CENTER PATCH LOCATION
-    xCen = 8.0 #must be float
-    yCen = 5.0 #must be float
+    #NO LONGER UPDATE HERE BUT UPDATED AFTER FUNCTION DEFINITIONS (LINES 161 AND 162)
+    # xCen = 8.0 #must be float
+    # yCen = 5.0 #must be float
 
     deltaX = xCen - xPos
     if deltaX == 0:
@@ -103,9 +106,9 @@ def guessParams(data,xPos, yPos):
 
 #Using the initial guess parameters from guessParams, the optimal parameters are determined using the following function
 #A least Squares method is used.
-def fitSine2D(data, xPos, yPos):
+def fitSine2D(data, xPos, yPos, xCen, yCen):
     #Obtain guess parameters
-    params = guessParams(data, xPos, yPos)
+    params = guessParams(data, xPos, yPos, xCen, yCen)
     #Set the bounds on what the determined fit parameters can be
     paramBounds = ([0,0,-np.inf,-np.inf,0,0,0,0,0],[np.inf,np.inf,np.inf,np.inf,2*np.pi,np.inf,np.inf,np.inf,np.inf])
     #Define the error function to be minimized (difference between fit function and data)
@@ -141,6 +144,9 @@ def gaussian(a, x_0, y_0, wx, wy):
 #Image Directories
 dir = 'C:\Users\Franky\Desktop\UofT Summer 2019\CalibrationImages3 (July 25)\\' #Directory containing calibration imgs
 targetDir = 'C:\Users\Franky\Desktop\UofT Summer 2019\Images\\' #Directory containing target image
+#*********
+#NOTE: The target image should be the size of the interpolated phase and amplitude maps, NOT THE DMD IMAGE SIZE.
+#*********
 targetFilename = 'triforce_RS2' #Filename of target excluding extensions (USER INPUT REQUIRED)
 cropDir = dir + 'Cropped2\\' #Directory where cropped images will be saved
 fitDir = dir + 'Fitted2\\' #Driectory where fitted images will be saved
@@ -155,12 +161,12 @@ ext2 = '.png' #filename extension
 cropCoords = (500,300,850,700)
 
 #DMD Image Parameters
-xMax = 16 #Maximum X-value in calibration images (Number of patches in X direction)
-yMax = 10 #Maximum Y-value in calibration images (Number of patches in Y direction)
-xCenter = 8 #X-Location of Center Patch (Must match xCen and yCen in guessParams Function)
-yCenter = 5 #Y-Location of Center Patch (Must match xCen and yCen in guessParams Function)
-xDim = 912 #Length of DMD image
-yDim = 1140#Width of DMD image
+xMax = 16 #Maximum X-value in calibration images (Number of patches in X direction) (keep as int)
+yMax = 10 #Maximum Y-value in calibration images (Number of patches in Y direction) (keep as int)
+xCenter = 8 #X-Location of Center Patch (keep as int)
+yCenter = 5 #Y-Location of Center Patch (keep as int)
+xDim = 912 #Length of DMD image (keep as int)
+yDim = 1140#Width of DMD image (keep as int)
 xDMDDim = 1290 #Not used
 yDMDDim = 806 #Not used
 #These radii need to match the radii of the calibration patches made using gratingGenerator.py
@@ -188,22 +194,28 @@ if fittingCheck == 1:
             # plt.imshow(data)
             # plt.show()
 
+            #Crop and Save Image
             croppedImage = image.crop(cropCoords)
             croppedImage.save(cropDir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + '_Cropped'+ ext1)
             croppedData = np.array(croppedImage)[:, :, 0]
 
-            params = fitSine2D(croppedData, xLoop, yLoop)
+            params = fitSine2D(croppedData, xLoop, yLoop, xCenter, yCenter)
             print "Params:", params
             # print params
             # print 2 * np.pi / params[2], 2 * np.pi / params[3]
             fit = sine2D(*params)
+
+            #***Save Fit Image***
             plt.figure()
             plt.imshow(croppedData, cmap = 'viridis')
             plt.colorbar()
             plt.contour(fit(*np.indices(croppedData.shape)), cmap=plt.cm.get_cmap('copper'), linewidths = 2)
             plt.savefig(fitDir + filenamePrefix + 'X' + str(xLoop) + 'Y' + str(yLoop) + '_Fit' + ext2)
             plt.close()
-            headers = ['A', 'B', 'x_0', 'y_0', 'phi']
+            #*******************
+
+            # headers = ['A', 'B', 'x_0', 'y_0', 'phi'] #don't use anymore
+            #Writes parameters for each fit into a csv file
             if xLoop == 1 and yLoop == 1:
                 # with open(dir+csvFilename, "wb") as output:
                 #     writer = csv.writer(output, lineterminator = '\n')
@@ -221,6 +233,7 @@ if mapCheck == 1:
     AList = []
     BList = []
     phiList = []
+    #Read CSV file in
     with open(dir+csvFilename, 'r') as csvFile:
         reader = csv.reader(csvFile)
         for row in reader:
@@ -232,30 +245,33 @@ if mapCheck == 1:
     yValues = np.arange(r2, yDim+r2-1,2*r2)
     xMesh, yMesh = np.meshgrid(xValues, yValues)
 
+    #Create empty phase and amplitude map
     phiMap = np.zeros([len(yValues), len(xValues)])
     ampMap = np.zeros([len(yValues), len(xValues)])
 
+    #Fills phi map with phi parameter from fit
     listLoop = 0
     for xLoop in range(0,xMax):
         for yLoop in range(0,yMax):
-            if xLoop == 7 and yLoop == 4:
+            if xLoop == xCenter-1 and yLoop == yCenter-1:
                 phiMap[yLoop,xLoop] = 0
             else:
                 phiMap[yLoop,xLoop] = phiList[listLoop]
                 listLoop = listLoop + 1
 
+    #Fills amplitude map with the product of the A and B parameter from fit
     listLoop = 0
     meanAList = []
     for xLoop in range(0, xMax):
         for yLoop in range(0, yMax):
-            if xLoop == 7 and yLoop == 4:
+            if xLoop == xCenter-1 and yLoop == yCenter-1:
                 ampMap[yLoop, xLoop] = 0
             else:
                 ampMap[yLoop, xLoop] = AList[listLoop]*BList[listLoop]
-                meanAList.append(max(AList[listLoop],BList[listLoop]))
+                meanAList.append(max(AList[listLoop],BList[listLoop])) #Keeps track of the intensity value from the center patch
                 listLoop = listLoop + 1
 
-    #Vertical Phase Unwrapping
+    #*********************Vertical Phase Unwrapping*********************
     unwrapPhiMap = np.zeros(np.shape(phiMap))
     unwrapPhiMap[:,:] = phiMap
     for wrapLoopx in range(0,xMax):
@@ -265,8 +281,9 @@ if mapCheck == 1:
             measuredPhi = unwrapPhiMap[wrapLoopy,wrapLoopx]
             m = round((expectedPhi-measuredPhi)/(2*np.pi))
             unwrapPhiMap[wrapLoopy, wrapLoopx] = unwrapPhiMap[wrapLoopy,wrapLoopx]+2*np.pi*m
+    #*******************************************************************
 
-    #Horizontal Phase Unwrapping
+    #*************Horizontal Phase Unwrapping***************************
     unwrapPhiMap2 = np.zeros(np.shape(unwrapPhiMap))
     unwrapPhiMap2[:, :] = unwrapPhiMap
     for wrapLoopx in range(2, xMax):
@@ -276,8 +293,9 @@ if mapCheck == 1:
             measuredPhi = unwrapPhiMap2[wrapLoopy, wrapLoopx]
             m = round((expectedPhi - measuredPhi) / (2 * np.pi))
             unwrapPhiMap2[wrapLoopy, wrapLoopx] = unwrapPhiMap2[wrapLoopy, wrapLoopx] + 2 * np.pi * m
+    #*******************************************************************
 
-    #Interpolation of Phase Map
+    #***********************Interpolation of Phase Map********************************
     interpPhiMapObject = interpolate.interp2d(xValues, yValues, unwrapPhiMap2, kind='cubic')
 
     newXValuesPhi = np.arange(r1, xDim - r1, 1)
@@ -285,14 +303,16 @@ if mapCheck == 1:
 
     interpPhiMap = interpPhiMapObject(newXValuesPhi, newYValuesPhi)
 
+    #Resizes the interpolated phi map to be the size of the DMD acceptable image
     interpPhiMapResized = np.zeros([yDim, xDim])
     interpPhiMapResized[int(r2):interpPhiMap.shape[0] + int(r2), int(r1):interpPhiMap.shape[1] + int(r1)] = interpPhiMap
+    # **********************************************************************************
 
     #Determines an approximation for the amplitude of the center calibration patch
     meanA = np.average(meanAList)
-    ampMap[4,7] = meanA**2
+    ampMap[xCenter-1, yCenter-1] = meanA**2
 
-    #Interpolation of Amplitude Map
+    #*****************************Interpolation of Amplitude Map*******************************
     interpAmpMapObject = interpolate.interp2d(xValues,yValues,ampMap, kind='cubic')
 
     newXValues = np.arange(r1, xDim-r1, 1)
@@ -300,16 +320,20 @@ if mapCheck == 1:
 
     interpAmpMap = interpAmpMapObject(newXValues, newYValues)
 
+    #Normalizes the amplitude map
     normAmpMap = np.zeros(np.shape(interpAmpMap))
     normAmpMap[:,:] = interpAmpMap/np.amax(interpAmpMap)
 
+    # Resizes the interpolated amplitude map to be the size of the DMD acceptable image
     interpAmpMapResized = np.zeros([yDim, xDim])
     interpAmpMapResized[int(r2):interpAmpMap.shape[0]+int(r2),int(r1):interpAmpMap.shape[1]+int(r1)] = interpAmpMap
 
+    # Resizes the interpolated and normalized amplitude map to be the size of the DMD acceptable image
     normAmpMapResized = np.zeros(np.shape(interpAmpMapResized))
     normAmpMapResized[:,:] = interpAmpMapResized/np.amax(interpAmpMapResized)
+    #*****************************************************************************************************
 
-    # #PLOTTING
+    # #*********PLOTTING***********
     # plt.figure(1)
     # plt.imshow(phiMap,extent=(0, xDim, yDim, 0), interpolation='none', cmap='rainbow')
     # plt.title('Phase')
@@ -359,33 +383,35 @@ if hologramCheck == 1:
     #
     # gauss = gaussian(1, xDim/2, yDim/2, 1, 1)(xMesh, yMesh)
 
-    #Obtain Target Image
+    #******************Obtain Target Image***************************************
     targetImage = Image.open(targetDir+targetFilename+ext1)
-    target = np.array(targetImage) #Use this or gauss for testing
+    target = np.array(targetImage) #Use targetImage or gauss for testing
 
     #Calculate the amplitude and phase of the FT of the Target Image
     targetFT = np.fft.fft2(target)
     targetFTShift = np.fft.fftshift(targetFT)
-    targetAmp = np.abs(targetFTShift)/np.amax(np.abs(targetFTShift))
+    targetAmp = np.abs(targetFTShift)/np.amax(np.abs(targetFTShift)) #NORMALIZED
     targetPhase = np.arctan(np.imag(targetFTShift)/(np.real(targetFTShift)+1e-10))
 
-    print np.shape(targetFTShift)
+    print np.shape(targetFTShift) #This should be the size of the interpolated phase and amplitude maps
 
     #Determine the amplitude coefficient map needed for amplitude modulation
-    ampCoeff = targetAmp/normAmpMap
+    ampCoeff = targetAmp/normAmpMap #NORMALIZEDTARGET/NORMALIZEDAMPMAP
     ampCoeffNorm = ampCoeff/np.amax(ampCoeff)
     # print np.shape(ampCoeff)
 
-    #Resize the map by padding outside with zeros
+    #*********************Resize the map by padding outside with zeros*********************************
     ampCoeffNormResized = np.zeros([yDim, xDim])
     ampCoeffNormResized[int(r2):ampCoeffNorm.shape[0] + int(r2), int(r1):ampCoeffNorm.shape[1] + int(r1)] = ampCoeffNorm
 
-    #Determine the phase difference map needed for phase modulation
+    #******Determine the phase difference map needed for phase modulation*********
     phaseDifference = targetPhase - interpPhiMap
 
+    # *********************Resize the map by padding outside with zeros*********************************
     phaseDifferenceResized = np.zeros([yDim, xDim])
     phaseDifferenceResized[int(r2):phaseDifference.shape[0]+int(r2),int(r1):phaseDifference.shape[1]+int(r1)] = phaseDifference
 
+    #Calculate the amplitude threshold which will be used to determine which regions of the hologram will have values of zero
     ampThreshold = np.zeros(np.shape(ampCoeffNorm))
     ampThreshold[:,:] = 1-ampCoeffNorm/2
 
@@ -393,9 +419,11 @@ if hologramCheck == 1:
     hologramXVals = np.arange(r1, xDim-r1, 1)
     hologramYVals = np.arange(r2, yDim-r2, 1)
     hologramXMesh, hologramYMesh = np.meshgrid(hologramXVals, hologramYVals)
-
+    #Use non-rezied phase difference and ampThreshold
     h = hologram(hologramXMesh, hologramYMesh, period, angle, phaseDifference, ampThreshold)
     #*******************************************************************
+
+    # *********************Resize the hologram by padding outside with zeros*********************************
     holo = np.zeros([yDim,xDim])
     holo[int(r2):h.shape[0]+int(r2),int(r1):h.shape[1]+int(r1)] = h
 

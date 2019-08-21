@@ -46,7 +46,7 @@ xvals = np.linspace(0,xDim-1,xDim)
 yvals = np.linspace(0,yDim-1,yDim)
 xMesh, yMesh = np.meshgrid(xvals,yvals)
 
-#Generates the calibration images, with a stationary patch near the
+#Generates the calibration images, with a stationary patch near the center and a patch that changes location in each img
 for xPos in np.arange(r1,xDim+r1-1,2*r1):
     for yPos in np.arange(r2,yDim+r2-1, 2*r2):
         filenameNumber = '_X_'+str(truncate(xPos,2))+'_Y_'+str(truncate(yPos,2))

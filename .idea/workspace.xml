@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="12f17d46-ef8f-47d8-a3c6-a892baef911e" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/fftImage.py" beforeDir="false" afterPath="$PROJECT_DIR$/fftImage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gaussianFit2D.py" beforeDir="false" afterPath="$PROJECT_DIR$/gaussianFit2D.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gratingGenerator.py" beforeDir="false" afterPath="$PROJECT_DIR$/gratingGenerator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/hologramGenerator.py" beforeDir="false" afterPath="$PROJECT_DIR$/hologramGenerator.py" afterDir="false" />
     </list>
@@ -22,8 +20,8 @@
       <file leaf-file-name="gratingGenerator.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-289">
-              <caret line="28" column="67" lean-forward="true" selection-start-line="28" selection-start-column="67" selection-end-line="28" selection-end-column="67" />
+            <state relative-caret-position="850">
+              <caret line="50" column="46" lean-forward="true" selection-start-line="50" selection-start-column="46" selection-end-line="50" selection-end-column="46" />
               <folding>
                 <element signature="e#153#171#0" expanded="true" />
               </folding>
@@ -55,8 +53,8 @@
       <file leaf-file-name="hologramGenerator.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/hologramGenerator.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="156">
-              <caret line="184" column="24" lean-forward="true" selection-start-line="184" selection-start-column="24" selection-end-line="184" selection-end-column="24" />
+            <state relative-caret-position="2519">
+              <caret line="456" column="18" lean-forward="true" selection-start-line="456" selection-start-column="18" selection-end-line="456" selection-end-column="18" />
               <folding>
                 <element signature="e#510#528#0" expanded="true" />
               </folding>
@@ -528,6 +526,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="850">
+          <caret line="50" column="46" lean-forward="true" selection-start-line="50" selection-start-column="46" selection-end-line="50" selection-end-column="46" />
+          <folding>
+            <element signature="e#153#171#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/gaussianFit2D.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="17">
@@ -535,20 +543,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/gratingGenerator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-289">
-          <caret line="28" column="67" lean-forward="true" selection-start-line="28" selection-start-column="67" selection-end-line="28" selection-end-column="67" />
-          <folding>
-            <element signature="e#153#171#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/hologramGenerator.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="156">
-          <caret line="184" column="24" lean-forward="true" selection-start-line="184" selection-start-column="24" selection-end-line="184" selection-end-column="24" />
+        <state relative-caret-position="2519">
+          <caret line="456" column="18" lean-forward="true" selection-start-line="456" selection-start-column="18" selection-end-line="456" selection-end-column="18" />
           <folding>
             <element signature="e#510#528#0" expanded="true" />
           </folding>
