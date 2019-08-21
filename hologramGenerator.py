@@ -4,7 +4,7 @@
 #and a hologram used for beam shaping.
 #Modified the 2D Gaussian Fit code from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#Last Updated: August 20th, 2019
+#Last Updated: August 21st, 2019
 
 #Import Directories
 import numpy as np

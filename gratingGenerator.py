@@ -1,7 +1,7 @@
 #gratingGenerator
 #This program creates diffraction gratings that will be projected onto the DMD.
 #Frank Corapi (fcorapi@uwaterloo.ca)
-#Last Modified: August 20th, 2019
+#Last Modified: August 21st, 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
