@@ -1,5 +1,5 @@
 #gaussianFit2D
-#This program fits a gaussian to an image.
+#This program fits a gaussian to an image. Could be useful.
 #Adapted from Scipy Cookbook (https://scipy-cookbook.readthedocs.io/items/FittingData.html)
 #Frank Corapi (fcorapi@uwaterloo.ca)
 #June 27th, 2019
@@ -13,7 +13,7 @@ from scipy import optimize
 def gaussian(a, x_0, y_0, wx, wy):
     wx = float(wx)
     wy = float(wy)
-    return lambda x,y: a*np.exp(np.power(((x-x_0)/wx),2)+np.power(((y-y_0)/wy),2))
+    return lambda x,y: a*np.exp(-np.power(((x-x_0)/wx),2)-np.power(((y-y_0)/wy),2))
 
 def moments(data):
     total = data.sum()
