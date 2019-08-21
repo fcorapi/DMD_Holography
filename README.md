@@ -23,4 +23,11 @@ There is still quite a bit of work to be done with regards to this project. I wi
 
 1) Improving the phase stability of the optical setup by designing a more secure and stable mount for the DMD, as well as improving the stability for the different optical componenents in the setup as well. This stability is important for creating an accurate phase map, and accomplish accurate phase modulation.
 
-2) If the phase stability does not improve the results
+2) If the phase stability does not improve the results, then a modification to the amplitude modulation section of the code is probably necessary. Also checking the accuracy of the fitting program could be useful, since if the program is yielding inaccurate fitting parameters, the phase and amplitude maps will be incorrect. 
+
+3) A quality of life improvement to the code would be to combine the gratingGenerator.py script and the hologramGenerator.py script. This should be fairly simple.
+
+4) Once a successful phase and amplitude modulation is performed, the next big step for the project would be to test different target profiles, and see which potentials could be creating using this Fourier plane method. 
+
+# Contact
+If you have any questions, feel free to send me an email at fcorapi@uwaterloo.ca. 
